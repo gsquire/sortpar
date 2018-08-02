@@ -17,5 +17,10 @@ pub(crate) fn matches<'a>() -> ArgMatches<'a> {
                 .short("f")
                 .long("ignore-case")
                 .help("fold casing while sorting"),
+        ).arg(
+            Arg::with_name("leading_blanks")
+                .short("b")
+                .long("ignore-leading-blanks")
+                .help("ignore leading blanks"),
         ).get_matches()
 }
