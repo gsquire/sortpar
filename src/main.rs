@@ -1,6 +1,7 @@
 #![feature(rust_2018_preview)]
 #![warn(rust_2018_idioms)]
 
+use std::cmp::Ordering;
 use std::fs::File;
 use std::io::{self, prelude::*, BufRead, BufReader};
 
@@ -20,6 +21,31 @@ enum Filter {
     Fold,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+enum SortType {
+    GeneralNumeric,
+    Regular,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
+struct SortedFloat(f64);
+
+impl Eq for SortedFloat {}
+
+// Consider all errors to be equal.
+impl Ord for SortedFloat {
+    fn cmp(&self, other: &SortedFloat) -> Ordering {
+        self.partial_cmp(other).unwrap_or(Ordering::Equal)
+    }
+}
+
+// FIXME: Does it make sense to have this as a separate type?
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+enum SortResult {
+    GeneralNumeric(SortedFloat),
+    Regular(String),
+}
+
 fn apply_filter(input: &str, filter: &Filter) -> String {
     use self::Filter::*;
 
@@ -30,11 +56,36 @@ fn apply_filter(input: &str, filter: &Filter) -> String {
     }
 }
 
+// Based on the argument type given, find out how the lines should be sorted.
+fn get_sort_type(matches: &'a ArgMatches<'a>) -> SortType {
+    use self::SortType::*;
+
+    if matches.is_present("general_numeric") {
+        return GeneralNumeric;
+    }
+
+    Regular
+}
+
+// According to the GNU man page, if a line fails to parse or does not start with a number it is
+// considered equal.
+fn general_numeric_sort(input: &str) -> f64 {
+    input.parse::<f64>().unwrap_or(0.0)
+}
+
+fn apply_sort_type(input: &str, sort_type: &SortType) -> SortResult {
+    use self::SortType::*;
+
+    match sort_type {
+        GeneralNumeric => SortResult::GeneralNumeric(SortedFloat(general_numeric_sort(input))),
+        Regular => SortResult::Regular(input.to_string()),
+    }
+}
+
 // Determine whether we need to transform the input to use in our sort comparator.
-// FIXME: Eventually add sort style as an argument and return `impl Ord`.
-fn key_filter_function(input: &str, filters: &[Filter]) -> String {
+fn key_filter_function(input: &str, filters: &[Filter], matches: &'a ArgMatches<'a>) -> SortResult {
     if filters.len() == 0 {
-        return input.to_owned();
+        return apply_sort_type(input, &get_sort_type(matches));
     }
 
     let mut cmp = apply_filter(input, &filters[0]);
@@ -42,7 +93,7 @@ fn key_filter_function(input: &str, filters: &[Filter]) -> String {
         cmp = apply_filter(&cmp, filter);
     }
 
-    cmp
+    apply_sort_type(&cmp, &get_sort_type(matches))
 }
 
 fn leading_blanks_filter(input: &str) -> String {
@@ -98,9 +149,9 @@ fn sort(lines: &mut [String], matches: &'a ArgMatches<'a>) {
     }
 
     if matches.is_present("stable") {
-        lines.par_sort_by_key(|k| key_filter_function(k, &filters));
+        lines.par_sort_by_key(|k| key_filter_function(k, &filters, matches));
     } else {
-        lines.par_sort_unstable_by_key(|k| key_filter_function(k, &filters));
+        lines.par_sort_unstable_by_key(|k| key_filter_function(k, &filters, matches));
     }
 }
 
