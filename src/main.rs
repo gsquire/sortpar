@@ -45,6 +45,10 @@ fn key_filter_function(input: &str, filters: &[Filter]) -> String {
     cmp
 }
 
+fn leading_blanks_filter(input: &str) -> String {
+    input.trim_left().to_owned()
+}
+
 fn dictionary_order_filter(input: &str) -> String {
     lazy_static! {
         // It is safe to unwrap as we know this pattern compiles.
@@ -52,10 +56,6 @@ fn dictionary_order_filter(input: &str) -> String {
     }
 
     RE.replace_all(input, "").into_owned()
-}
-
-fn leading_blanks_filter(input: &str) -> String {
-    input.trim_left().to_owned()
 }
 
 fn fold_filter(input: &str) -> String {
