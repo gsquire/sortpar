@@ -5,7 +5,9 @@ use std::fs::File;
 use std::io::{self, prelude::*, BufRead, BufReader};
 
 use clap::ArgMatches;
+use lazy_static::lazy_static;
 use rayon::slice::ParallelSliceMut;
+use regex::Regex;
 
 mod args;
 
@@ -14,6 +16,7 @@ const STDIN_FILENAME: &str = "-";
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 enum Filter {
     LeadingBlanks,
+    Dictionary,
     Fold,
 }
 
@@ -22,6 +25,7 @@ fn apply_filter(input: &str, filter: &Filter) -> String {
 
     match filter {
         LeadingBlanks => leading_blanks_filter(input),
+        Dictionary => dictionary_order_filter(input),
         Fold => fold_filter(input),
     }
 }
@@ -39,6 +43,15 @@ fn key_filter_function(input: &str, filters: &[Filter]) -> String {
     }
 
     cmp
+}
+
+fn dictionary_order_filter(input: &str) -> String {
+    lazy_static! {
+        // It is safe to unwrap as we know this pattern compiles.
+        static ref RE: Regex = Regex::new("[^[[:alnum:]][[:space:]]]").unwrap();
+    }
+
+    RE.replace_all(input, "").into_owned()
 }
 
 fn leading_blanks_filter(input: &str) -> String {
@@ -74,6 +87,10 @@ fn sort(lines: &mut [String], matches: &'a ArgMatches<'a>) {
     // These filters can be added to any sorting style so check them first.
     if matches.is_present("leading_blanks") {
         filters.push(Filter::LeadingBlanks);
+    }
+
+    if matches.is_present("dictionary_order") {
+        filters.push(Filter::Dictionary);
     }
 
     if matches.is_present("fold") {
