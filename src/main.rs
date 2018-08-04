@@ -27,6 +27,7 @@ fn apply_filter(input: &str, filter: &Filter) -> String {
 }
 
 // Determine whether we need to transform the input to use in our sort comparator.
+// FIXME: Eventually add sort style as an argument and return `impl Ord`.
 fn key_filter_function(input: &str, filters: &[Filter]) -> String {
     if filters.len() == 0 {
         return input.to_owned();
@@ -70,6 +71,7 @@ fn write_result(lines: &[String]) -> io::Result<()> {
 fn sort(lines: &mut [String], matches: &'a ArgMatches<'a>) {
     let mut filters = Vec::new();
 
+    // These filters can be added to any sorting style so check them first.
     if matches.is_present("leading_blanks") {
         filters.push(Filter::LeadingBlanks);
     }
@@ -81,6 +83,7 @@ fn sort(lines: &mut [String], matches: &'a ArgMatches<'a>) {
     lines.par_sort_unstable_by_key(|k| key_filter_function(k, &filters));
 }
 
+// FIXME: We can probably do better with allocations here.
 fn run_sort(matches: &'a ArgMatches<'a>) -> io::Result<()> {
     let files = matches
         .values_of("FILE")
@@ -97,9 +100,9 @@ fn run_sort(matches: &'a ArgMatches<'a>) -> io::Result<()> {
     for file in &files {
         if file == &STDIN_FILENAME {
             lines.extend(read_file(io::stdin().lock()));
-            continue;
+        } else {
+            lines.extend(read_file(File::open(file)?));
         }
-        lines.extend(read_file(File::open(file)?));
     }
 
     sort(&mut lines, matches);
@@ -112,6 +115,6 @@ fn main() {
 
     // FIXME: Better error messages.
     if let Err(e) = run_sort(&matches) {
-        eprintln!("error: {}", e);
+        eprintln!("error running sortpar: {}", e);
     }
 }

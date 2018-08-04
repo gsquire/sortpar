@@ -22,5 +22,10 @@ pub(crate) fn matches<'a>() -> ArgMatches<'a> {
                 .short("b")
                 .long("ignore-leading-blanks")
                 .help("ignore leading blanks"),
+        ).arg(
+            Arg::with_name("dictionary_order")
+                .short("d")
+                .long("dictionary-order")
+                .help("consider only blanks and alphanumeric characters"),
         ).get_matches()
 }
