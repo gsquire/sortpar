@@ -27,5 +27,10 @@ pub(crate) fn matches<'a>() -> ArgMatches<'a> {
                 .short("d")
                 .long("dictionary-order")
                 .help("consider only blanks and alphanumeric characters"),
+        ).arg(
+            Arg::with_name("stable")
+                .short("s")
+                .long("stable")
+                .help("use stable sort"),
         ).get_matches()
 }

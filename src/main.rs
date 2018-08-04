@@ -97,7 +97,11 @@ fn sort(lines: &mut [String], matches: &'a ArgMatches<'a>) {
         filters.push(Filter::Fold);
     }
 
-    lines.par_sort_unstable_by_key(|k| key_filter_function(k, &filters));
+    if matches.is_present("stable") {
+        lines.par_sort_by_key(|k| key_filter_function(k, &filters));
+    } else {
+        lines.par_sort_unstable_by_key(|k| key_filter_function(k, &filters));
+    }
 }
 
 // FIXME: We can probably do better with allocations here.
