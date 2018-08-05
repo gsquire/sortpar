@@ -46,7 +46,7 @@ enum SortResult {
     Regular(String),
 }
 
-fn apply_filter(input: &str, filter: &Filter) -> String {
+fn apply_filter(input: &str, filter: Filter) -> String {
     use self::Filter::*;
 
     match filter {
@@ -73,7 +73,7 @@ fn general_numeric_sort(input: &str) -> f64 {
     input.parse::<f64>().unwrap_or(0.0)
 }
 
-fn apply_sort_type(input: &str, sort_type: &SortType) -> SortResult {
+fn apply_sort_type(input: &str, sort_type: SortType) -> SortResult {
     use self::SortType::*;
 
     match sort_type {
@@ -84,16 +84,16 @@ fn apply_sort_type(input: &str, sort_type: &SortType) -> SortResult {
 
 // Determine whether we need to transform the input to use in our sort comparator.
 fn key_filter_function(input: &str, filters: &[Filter], matches: &'a ArgMatches<'a>) -> SortResult {
-    if filters.len() == 0 {
-        return apply_sort_type(input, &get_sort_type(matches));
+    if filters.is_empty() {
+        return apply_sort_type(input, get_sort_type(matches));
     }
 
-    let mut cmp = apply_filter(input, &filters[0]);
-    for filter in filters.iter().skip(1) {
-        cmp = apply_filter(&cmp, filter);
+    let mut cmp = apply_filter(input, filters[0]);
+    for filter in filters.into_iter().skip(1) {
+        cmp = apply_filter(&cmp, *filter);
     }
 
-    apply_sort_type(&cmp, &get_sort_type(matches))
+    apply_sort_type(&cmp, get_sort_type(matches))
 }
 
 fn leading_blanks_filter(input: &str) -> String {
