@@ -44,6 +44,11 @@ pub(crate) fn matches<'a>() -> ArgMatches<'a> {
                 .long("version-sort")
                 .help("attempt to sort by version strings"),
         ).arg(
+            Arg::with_name("reverse")
+                .short("r")
+                .long("reverse")
+                .help("reverse the ordering of the sort"),
+        ).arg(
             Arg::with_name("output")
                 .short("o")
                 .long("output")

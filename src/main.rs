@@ -183,12 +183,18 @@ fn sort(lines: &mut [String], matches: &'a ArgMatches<'a>) {
         lines.par_sort_by(|a, b| {
             let filtered_a = filter_function(a, &filters);
             let filtered_b = filter_function(b, &filters);
+            if matches.is_present("reverse") {
+                return apply_sort_type(&filtered_b, &filtered_a, get_sort_type(matches));
+            }
             apply_sort_type(&filtered_a, &filtered_b, get_sort_type(matches))
         });
     } else {
         lines.par_sort_unstable_by(|a, b| {
             let filtered_a = filter_function(a, &filters);
             let filtered_b = filter_function(b, &filters);
+            if matches.is_present("reverse") {
+                return apply_sort_type(&filtered_b, &filtered_a, get_sort_type(matches));
+            }
             apply_sort_type(&filtered_a, &filtered_b, get_sort_type(matches))
         });
     }
