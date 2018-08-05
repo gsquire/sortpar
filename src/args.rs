@@ -31,7 +31,18 @@ pub(crate) fn matches<'a>() -> ArgMatches<'a> {
             Arg::with_name("general_numeric")
                 .short("g")
                 .long("general-numeric-sort")
+                .conflicts_with_all(&["human_numeric", "version_sort"])
                 .help("compare according to general numerical value"),
+        ).arg(
+            Arg::with_name("human_numeric")
+                .short("h")
+                .long("human-numeric-sort")
+                .help("sort using natural ordering"),
+        ).arg(
+            Arg::with_name("version_sort")
+                .short("V")
+                .long("version-sort")
+                .help("attempt to sort by version strings"),
         ).arg(
             Arg::with_name("stable")
                 .short("s")

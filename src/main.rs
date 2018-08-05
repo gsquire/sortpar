@@ -9,6 +9,7 @@ use clap::ArgMatches;
 use lazy_static::lazy_static;
 use rayon::slice::ParallelSliceMut;
 use regex::Regex;
+use version_compare::Version;
 
 mod args;
 
@@ -24,7 +25,10 @@ enum Filter {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 enum SortType {
     GeneralNumeric,
+    // FIXME: This didn't work for disk size strings. Do we need to write another crate?
+    Human,
     Regular,
+    VersionSort,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
@@ -50,11 +54,16 @@ fn apply_filter(input: &str, filter: Filter) -> String {
 }
 
 // Based on the argument type given, find out how the lines should be sorted.
+// We know that we can only use one at a time since they all conflict with one another via clap.
 fn get_sort_type(matches: &'a ArgMatches<'a>) -> SortType {
     use self::SortType::*;
 
     if matches.is_present("general_numeric") {
         return GeneralNumeric;
+    } else if matches.is_present("human_numeric") {
+        return Human;
+    } else if matches.is_present("version_sort") {
+        return VersionSort;
     }
 
     Regular
@@ -73,7 +82,24 @@ fn apply_sort_type(a: &str, b: &str, sort_type: SortType) -> Ordering {
         GeneralNumeric => {
             SortedFloat(general_numeric_sort(a)).cmp(&SortedFloat(general_numeric_sort(b)))
         }
+        Human => natord::compare(a, b),
         Regular => a.cmp(b),
+        VersionSort => {
+            // We try to parse both strings as versions, falling back to natural ordering if need
+            // be.
+            if let Some(ver_a) = Version::from(a) {
+                if let Some(ver_b) = Version::from(b) {
+                    if let Some(o) = ver_a.compare(&ver_b).ord() {
+                        return o;
+                    } else {
+                        return natord::compare(a, b);
+                    }
+                } else {
+                    return natord::compare(a, b);
+                }
+            }
+            natord::compare(a, b)
+        }
     }
 }
 
