@@ -39,13 +39,6 @@ impl Ord for SortedFloat {
     }
 }
 
-// FIXME: Does it make sense to have this as a separate type?
-#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
-enum SortResult {
-    GeneralNumeric(SortedFloat),
-    Regular(String),
-}
-
 fn apply_filter(input: &str, filter: Filter) -> String {
     use self::Filter::*;
 
@@ -73,19 +66,21 @@ fn general_numeric_sort(input: &str) -> f64 {
     input.parse::<f64>().unwrap_or(0.0)
 }
 
-fn apply_sort_type(input: &str, sort_type: SortType) -> SortResult {
+fn apply_sort_type(a: &str, b: &str, sort_type: SortType) -> Ordering {
     use self::SortType::*;
 
     match sort_type {
-        GeneralNumeric => SortResult::GeneralNumeric(SortedFloat(general_numeric_sort(input))),
-        Regular => SortResult::Regular(input.to_string()),
+        GeneralNumeric => {
+            SortedFloat(general_numeric_sort(a)).cmp(&SortedFloat(general_numeric_sort(b)))
+        }
+        Regular => a.cmp(b),
     }
 }
 
 // Determine whether we need to transform the input to use in our sort comparator.
-fn key_filter_function(input: &str, filters: &[Filter], matches: &'a ArgMatches<'a>) -> SortResult {
+fn filter_function(input: &str, filters: &[Filter]) -> String {
     if filters.is_empty() {
-        return apply_sort_type(input, get_sort_type(matches));
+        return input.to_string();
     }
 
     let mut cmp = apply_filter(input, filters[0]);
@@ -93,7 +88,7 @@ fn key_filter_function(input: &str, filters: &[Filter], matches: &'a ArgMatches<
         cmp = apply_filter(&cmp, *filter);
     }
 
-    apply_sort_type(&cmp, get_sort_type(matches))
+    cmp
 }
 
 fn leading_blanks_filter(input: &str) -> String {
@@ -149,9 +144,17 @@ fn sort(lines: &mut [String], matches: &'a ArgMatches<'a>) {
     }
 
     if matches.is_present("stable") {
-        lines.par_sort_by_key(|k| key_filter_function(k, &filters, matches));
+        lines.par_sort_by(|a, b| {
+            let filtered_a = filter_function(a, &filters);
+            let filtered_b = filter_function(b, &filters);
+            apply_sort_type(&filtered_a, &filtered_b, get_sort_type(matches))
+        });
     } else {
-        lines.par_sort_unstable_by_key(|k| key_filter_function(k, &filters, matches));
+        lines.par_sort_unstable_by(|a, b| {
+            let filtered_a = filter_function(a, &filters);
+            let filtered_b = filter_function(b, &filters);
+            apply_sort_type(&filtered_a, &filtered_b, get_sort_type(matches))
+        });
     }
 }
 
@@ -159,7 +162,7 @@ fn sort(lines: &mut [String], matches: &'a ArgMatches<'a>) {
 fn run_sort(matches: &'a ArgMatches<'a>) -> io::Result<()> {
     let files = matches
         .values_of("FILE")
-        .unwrap_or(clap::Values::default())
+        .unwrap_or_default()
         .collect::<Vec<&str>>();
 
     let mut lines = Vec::new();
