@@ -97,7 +97,7 @@ fn key_filter_function(input: &str, filters: &[Filter], matches: &'a ArgMatches<
 }
 
 fn leading_blanks_filter(input: &str) -> String {
-    input.trim_left().to_owned()
+    input.trim_left().to_string()
 }
 
 fn dictionary_order_filter(input: &str) -> String {
