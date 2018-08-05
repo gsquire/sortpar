@@ -59,5 +59,10 @@ pub(crate) fn matches<'a>() -> ArgMatches<'a> {
                 .short("s")
                 .long("stable")
                 .help("use stable sort"),
+        ).arg(
+            Arg::with_name("unique")
+                .short("u")
+                .long("unique")
+                .help("output only the first element of an equal run"),
         ).get_matches()
 }

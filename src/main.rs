@@ -6,6 +6,7 @@ use std::fs::{File, OpenOptions};
 use std::io::{self, prelude::*, BufRead, BufReader, BufWriter};
 
 use clap::ArgMatches;
+use itertools::Itertools;
 use lazy_static::lazy_static;
 use rayon::slice::ParallelSliceMut;
 use regex::Regex;
@@ -222,8 +223,13 @@ fn run_sort(matches: &'a ArgMatches<'a>) -> io::Result<()> {
         }
     }
 
-    sort(&mut lines, matches);
+    if matches.is_present("unique") {
+        let mut unique = lines.into_iter().unique().collect::<Vec<String>>();
+        sort(&mut unique, matches);
+        return write_result(&unique, matches);
+    }
 
+    sort(&mut lines, matches);
     write_result(&lines, matches)
 }
 
