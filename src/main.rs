@@ -2,8 +2,8 @@
 #![warn(rust_2018_idioms)]
 
 use std::cmp::Ordering;
-use std::fs::File;
-use std::io::{self, prelude::*, BufRead, BufReader};
+use std::fs::{File, OpenOptions};
+use std::io::{self, prelude::*, BufRead, BufReader, BufWriter};
 
 use clap::ArgMatches;
 use lazy_static::lazy_static;
@@ -104,6 +104,7 @@ fn apply_sort_type(a: &str, b: &str, sort_type: SortType) -> Ordering {
 }
 
 // Determine whether we need to transform the input to use in our sort comparator.
+// FIXME: Can we avoid the extra allocations here and in the filter functions below?
 fn filter_function(input: &str, filters: &[Filter]) -> String {
     if filters.is_empty() {
         return input.to_string();
@@ -141,16 +142,25 @@ fn read_file(file: impl Read) -> Vec<String> {
     buf_reader.lines().filter_map(|l| l.ok()).collect()
 }
 
-fn write_result(lines: &[String]) -> io::Result<()> {
-    let out = io::stdout();
-    let mut handle = out.lock();
-
+fn write_lines(lines: &[String], mut out: impl Write) -> io::Result<()> {
     for line in lines {
-        handle.write(line.as_bytes())?;
-        handle.write(b"\n")?;
+        out.write_all(line.as_bytes())?;
+        out.write_all(b"\n")?;
     }
 
     Ok(())
+}
+
+fn write_result(lines: &[String], matches: &'a ArgMatches<'a>) -> io::Result<()> {
+    if let Some(f) = matches.value_of("output") {
+        let file = OpenOptions::new().create(true).write(true).open(f)?;
+        let out = BufWriter::new(file);
+        return write_lines(lines, out);
+    }
+
+    let out = io::stdout();
+    let handle = out.lock();
+    write_lines(lines, handle)
 }
 
 fn sort(lines: &mut [String], matches: &'a ArgMatches<'a>) {
@@ -208,7 +218,7 @@ fn run_sort(matches: &'a ArgMatches<'a>) -> io::Result<()> {
 
     sort(&mut lines, matches);
 
-    write_result(&lines)
+    write_result(&lines, matches)
 }
 
 fn main() {

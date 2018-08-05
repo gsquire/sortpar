@@ -44,6 +44,12 @@ pub(crate) fn matches<'a>() -> ArgMatches<'a> {
                 .long("version-sort")
                 .help("attempt to sort by version strings"),
         ).arg(
+            Arg::with_name("output")
+                .short("o")
+                .long("output")
+                .takes_value(true)
+                .help("write to this file instead of standard output"),
+        ).arg(
             Arg::with_name("stable")
                 .short("s")
                 .long("stable")
