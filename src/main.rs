@@ -1,6 +1,7 @@
 #![feature(rust_2018_preview)]
 #![warn(rust_2018_idioms)]
 
+use std::borrow::Cow;
 use std::cmp::Ordering;
 use std::fs::{File, OpenOptions};
 use std::io::{self, prelude::*, BufRead, BufReader, BufWriter};
@@ -106,9 +107,9 @@ fn apply_sort_type(a: &str, b: &str, sort_type: SortType) -> Ordering {
 
 // Determine whether we need to transform the input to use in our sort comparator.
 // FIXME: Can we avoid the extra allocations here and in the filter functions below?
-fn filter_function(input: &str, filters: &[Filter]) -> String {
+fn filter_function(input: &'s str, filters: &[Filter]) -> Cow<'s, str> {
     if filters.is_empty() {
-        return input.to_string();
+        return Cow::Borrowed(input);
     }
 
     let mut cmp = apply_filter(input, filters[0]);
@@ -116,7 +117,7 @@ fn filter_function(input: &str, filters: &[Filter]) -> String {
         cmp = apply_filter(&cmp, *filter);
     }
 
-    cmp
+    Cow::Owned(cmp)
 }
 
 fn leading_blanks_filter(input: &str) -> String {
