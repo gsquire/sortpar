@@ -8,7 +8,7 @@ authors = ["Garrett Squire <garrettsquire@gmail.com>"]
 
 [dependencies]
 caseless = "0.2"
-clap = "2.32"
+clap = { version = "2.32", features = ["color"] }
 itertools = "0.7"
 lazy_static = "1.0"
 natord = "1.0"

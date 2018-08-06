@@ -1,11 +1,12 @@
 use clap::{crate_authors, crate_version};
-use clap::{App, Arg, ArgMatches};
+use clap::{App, AppSettings, Arg, ArgMatches};
 
 pub(crate) fn matches<'a>() -> ArgMatches<'a> {
     App::new("sortpar")
         .about("sort in parallel")
         .author(crate_authors!())
         .version(crate_version!())
+        .setting(AppSettings::ColoredHelp)
         .arg(
             Arg::with_name("FILE")
                 .value_name("FILE")
