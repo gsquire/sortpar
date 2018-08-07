@@ -12,6 +12,9 @@ use version_compare::Version;
 
 use self::filter::{filter_function, Filter};
 
+#[cfg(test)]
+mod integration;
+
 mod args;
 mod filter;
 
