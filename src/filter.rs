@@ -53,3 +53,54 @@ fn fold_filter(input: &str) -> String {
     use caseless::default_case_fold_str as fold;
     fold(input)
 }
+
+#[cfg(test)]
+mod tests {
+    use std::borrow::Cow;
+
+    use super::{dictionary_order_filter, filter_function, Filter};
+
+    #[test]
+    fn test_dictionary_filter() {
+        let spaces = " ".repeat(7);
+        let cases = vec![
+            "simple",
+            "number 7",
+            "some other characters $%",
+            "",
+            &spaces,
+        ];
+        let expected = vec!["simple", "number 7", "some other characters ", "", &spaces];
+
+        for case in cases.into_iter().zip(expected) {
+            let actual = dictionary_order_filter(case.0);
+            assert_eq!(actual, case.1);
+        }
+    }
+
+    #[test]
+    fn test_no_filter_returns_borrowed() {
+        let input = "input";
+        let result = filter_function(input, &[]);
+        assert_eq!(result, Cow::Borrowed(input));
+    }
+
+    #[test]
+    fn test_filter_returns_owned() {
+        let input = " input";
+        let expected = String::from("input");
+        let result = filter_function(input, &[Filter::LeadingBlanks]);
+        assert_eq!(result, Cow::Owned(expected) as Cow<'_, str>);
+    }
+
+    #[test]
+    fn test_multiple_filters() {
+        let input = " INPUT$";
+        let expected = String::from("input");
+        let result = filter_function(
+            input,
+            &[Filter::LeadingBlanks, Filter::Dictionary, Filter::Fold],
+        );
+        assert_eq!(result, Cow::Owned(expected) as Cow<'_, str>);
+    }
+}
