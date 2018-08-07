@@ -202,14 +202,15 @@ fn sort(lines: &mut [String], matches: &'a ArgMatches<'a>) {
     }
 }
 
-// FIXME: We can probably do better with allocations here.
 fn run_sort(matches: &'a ArgMatches<'a>) -> io::Result<()> {
+    const DEFAULT_BUFFER_CAPACITY: usize = 2048;
+
     let files = matches
         .values_of("FILE")
         .unwrap_or_default()
         .collect::<Vec<&str>>();
 
-    let mut lines = Vec::new();
+    let mut lines = Vec::with_capacity(DEFAULT_BUFFER_CAPACITY);
 
     // No files were supplied so read from standard input.
     if files.is_empty() {
