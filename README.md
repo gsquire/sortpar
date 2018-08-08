@@ -6,10 +6,11 @@ advantage of the [rayon](https://github.com/rayon-rs/rayon) crate's implementati
 [![Build Status](https://travis-ci.org/gsquire/sortpar.svg?branch=master)](https://travis-ci.org/gsquire/sortpar)
 
 ## Installation
-You can install `sortpar` by running:
+`sortpar` requires a nightly Rust compiler as it is testing out editions. You can install it by
+running:
 
 ```sh
-cargo install sortpar
+cargo +nightly install sortpar
 ```
 
 This will place a binary called `sp` in the `$HOME/.cargo/bin` directory on your machine. You can
