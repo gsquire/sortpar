@@ -23,7 +23,6 @@ const STDIN_FILENAME: &str = "-";
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 enum SortType {
     GeneralNumeric,
-    // FIXME: This didn't work for disk size strings. Do we need to write another crate?
     Human,
     Regular,
     VersionSort,
@@ -190,7 +189,6 @@ fn run_sort(matches: &'a ArgMatches<'a>) -> io::Result<()> {
 fn main() {
     let matches = args::matches();
 
-    // FIXME: Better error messages.
     if let Err(e) = run_sort(&matches) {
         eprintln!("error running sortpar: {}", e);
     }

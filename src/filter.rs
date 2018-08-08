@@ -21,7 +21,6 @@ fn apply_filter(input: &str, filter: Filter) -> String {
 }
 
 // Determine whether we need to transform the input to use in our sort comparator.
-// FIXME: Can we avoid the extra allocations here and in the filter functions below?
 pub(crate) fn filter_function(input: &'s str, filters: &[Filter]) -> Cow<'s, str> {
     if filters.is_empty() {
         return Cow::Borrowed(input);
@@ -49,7 +48,6 @@ fn dictionary_order_filter(input: &str) -> String {
 }
 
 fn fold_filter(input: &str) -> String {
-    // FIXME: Why doesn't this output the same as the sort built in? Do we care?
     use caseless::default_case_fold_str as fold;
     fold(input)
 }
