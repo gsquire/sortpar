@@ -18,16 +18,6 @@ mod integration;
 mod args;
 mod filter;
 
-const STDIN_FILENAME: &str = "-";
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
-enum SortType {
-    GeneralNumeric,
-    Human,
-    Regular,
-    VersionSort,
-}
-
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
 struct SortedFloat(f64);
 
@@ -38,6 +28,14 @@ impl Ord for SortedFloat {
     fn cmp(&self, other: &SortedFloat) -> Ordering {
         self.partial_cmp(other).unwrap_or(Ordering::Equal)
     }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+enum SortType {
+    GeneralNumeric,
+    Human,
+    Regular,
+    VersionSort,
 }
 
 // Based on the argument type given, find out how the lines should be sorted.
@@ -150,6 +148,7 @@ fn sort(lines: &mut [String], matches: &'a ArgMatches<'a>) {
 
 fn run_sort(matches: &'a ArgMatches<'a>) -> io::Result<()> {
     const DEFAULT_BUFFER_CAPACITY: usize = 2048;
+    const STDIN_FILENAME: &str = "-";
 
     let files = matches
         .values_of("FILE")
