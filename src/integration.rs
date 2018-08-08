@@ -49,6 +49,20 @@ fn test_unique() {
 }
 
 #[test]
+fn test_reverse() {
+    let expected = String::from("look\nguys\nexplosions\ndon't\ncool\nat\n");
+
+    let out = Command::main_binary()
+        .unwrap()
+        .arg("-r")
+        .arg("test_files/reverse.txt")
+        .unwrap();
+
+    let actual = String::from_utf8(out.stdout).unwrap();
+    assert_eq!(actual, expected);
+}
+
+#[test]
 fn test_fold_and_output() {
     let dir = tempdir().unwrap();
     let path = dir.path().join("output.txt");

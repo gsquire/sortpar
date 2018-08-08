@@ -116,6 +116,15 @@ fn write_result(lines: &[String], matches: &'a ArgMatches<'a>) -> io::Result<()>
     write_lines(lines, handle)
 }
 
+fn sort_closure(a: &str, b: &str, matches: &'a ArgMatches<'a>, filters: &[Filter]) -> Ordering {
+    let filtered_a = filter_function(a, filters);
+    let filtered_b = filter_function(b, filters);
+    if matches.is_present("reverse") {
+        return apply_sort_type(&filtered_b, &filtered_a, get_sort_type(matches));
+    }
+    apply_sort_type(&filtered_a, &filtered_b, get_sort_type(matches))
+}
+
 fn sort(lines: &mut [String], matches: &'a ArgMatches<'a>) {
     let mut filters = Vec::new();
 
@@ -133,23 +142,9 @@ fn sort(lines: &mut [String], matches: &'a ArgMatches<'a>) {
     }
 
     if matches.is_present("stable") {
-        lines.par_sort_by(|a, b| {
-            let filtered_a = filter_function(a, &filters);
-            let filtered_b = filter_function(b, &filters);
-            if matches.is_present("reverse") {
-                return apply_sort_type(&filtered_b, &filtered_a, get_sort_type(matches));
-            }
-            apply_sort_type(&filtered_a, &filtered_b, get_sort_type(matches))
-        });
+        lines.par_sort_by(|a, b| sort_closure(a, b, matches, &filters));
     } else {
-        lines.par_sort_unstable_by(|a, b| {
-            let filtered_a = filter_function(a, &filters);
-            let filtered_b = filter_function(b, &filters);
-            if matches.is_present("reverse") {
-                return apply_sort_type(&filtered_b, &filtered_a, get_sort_type(matches));
-            }
-            apply_sort_type(&filtered_a, &filtered_b, get_sort_type(matches))
-        });
+        lines.par_sort_unstable_by(|a, b| sort_closure(a, b, matches, &filters));
     }
 }
 
