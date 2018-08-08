@@ -18,3 +18,5 @@ version-compare = "0.0"
 
 [dev-dependencies]
 assert_cmd = "0.9"
+slurp = "1.0"
+tempfile = "3.0"

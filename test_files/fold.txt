@@ -1,0 +1,6 @@
+bike
+BIKE
+car
+CAR
+APPLE
+apple
