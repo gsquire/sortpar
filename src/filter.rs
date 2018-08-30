@@ -21,7 +21,7 @@ fn apply_filter(input: &str, filter: Filter) -> String {
 }
 
 // Determine whether we need to transform the input to use in our sort comparator.
-pub(crate) fn filter_function(input: &'s str, filters: &[Filter]) -> Cow<'s, str> {
+pub(crate) fn filter_function<'s>(input: &'s str, filters: &[Filter]) -> Cow<'s, str> {
     if filters.is_empty() {
         return Cow::Borrowed(input);
     }

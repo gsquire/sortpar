@@ -1,4 +1,3 @@
-#![feature(rust_2018_preview)]
 #![warn(rust_2018_idioms)]
 
 use std::cmp::Ordering;
@@ -40,7 +39,7 @@ enum SortType {
 
 // Based on the argument type given, find out how the lines should be sorted.
 // We know that we can only use one at a time since they all conflict with one another via clap.
-fn get_sort_type(matches: &'a ArgMatches<'a>) -> SortType {
+fn get_sort_type<'a>(matches: &'a ArgMatches<'a>) -> SortType {
     use self::SortType::*;
 
     if matches.is_present("general_numeric") {
@@ -102,7 +101,7 @@ fn write_lines(lines: &[String], mut out: impl Write) -> io::Result<()> {
     Ok(())
 }
 
-fn write_result(lines: &[String], matches: &'a ArgMatches<'a>) -> io::Result<()> {
+fn write_result<'a>(lines: &[String], matches: &'a ArgMatches<'a>) -> io::Result<()> {
     if let Some(f) = matches.value_of("output") {
         let file = OpenOptions::new().create(true).write(true).open(f)?;
         let out = BufWriter::new(file);
@@ -114,7 +113,7 @@ fn write_result(lines: &[String], matches: &'a ArgMatches<'a>) -> io::Result<()>
     write_lines(lines, handle)
 }
 
-fn sort_closure(a: &str, b: &str, matches: &'a ArgMatches<'a>, filters: &[Filter]) -> Ordering {
+fn sort_closure<'a>(a: &str, b: &str, matches: &'a ArgMatches<'a>, filters: &[Filter]) -> Ordering {
     let filtered_a = filter_function(a, filters);
     let filtered_b = filter_function(b, filters);
     if matches.is_present("reverse") {
@@ -123,7 +122,7 @@ fn sort_closure(a: &str, b: &str, matches: &'a ArgMatches<'a>, filters: &[Filter
     apply_sort_type(&filtered_a, &filtered_b, get_sort_type(matches))
 }
 
-fn sort(lines: &mut [String], matches: &'a ArgMatches<'a>) {
+fn sort<'a>(lines: &mut [String], matches: &'a ArgMatches<'a>) {
     let mut filters = Vec::new();
 
     // These filters can be added to any sorting style so check them first.
@@ -146,7 +145,7 @@ fn sort(lines: &mut [String], matches: &'a ArgMatches<'a>) {
     }
 }
 
-fn run_sort(matches: &'a ArgMatches<'a>) -> io::Result<()> {
+fn run_sort<'a>(matches: &'a ArgMatches<'a>) -> io::Result<()> {
     const DEFAULT_BUFFER_CAPACITY: usize = 2048;
     const STDIN_FILENAME: &str = "-";
 
